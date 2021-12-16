@@ -2,8 +2,10 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
+	"github.com/joho/godotenv"
 	"net/http"
 	"os"
 	"paystack/model"
@@ -11,17 +13,18 @@ import (
 )
 
 var (
+	_       = godotenv.Load()
 	Secret  = os.Getenv("PAYSTACK_SECRET_KEY")
 	BaseURL = os.Getenv("PAYSTACK_BASE_URL")
 )
 
-func VerifyTransaction(c *gin.Context) {
+func CheckTransaction(c *gin.Context) {
 
 	var payload struct {
-		Reference string `json:"reference" binding:"required"`
+		Reference string `form:"reference" binding:"required"`
 	}
 
-	if er := c.ShouldBindJSON(&payload); er != nil {
+	if er := c.ShouldBindQuery(&payload); er != nil {
 		c.JSONP(http.StatusBadRequest, map[string]interface{}{
 			"status":  false,
 			"message": "bad request",
@@ -33,7 +36,7 @@ func VerifyTransaction(c *gin.Context) {
 	client := resty.New()
 	resp, er := client.R().
 		SetHeader("Authorization", "Bearer "+Secret).
-		Get(utils.ResolveURL(BaseURL, "/transaction/verify/"))
+		Get(utils.ResolveURL(BaseURL, fmt.Sprintf("/transaction/verify/%s", payload.Reference)))
 
 	if er != nil {
 		c.JSONP(http.StatusUnprocessableEntity, map[string]interface{}{
@@ -44,21 +47,22 @@ func VerifyTransaction(c *gin.Context) {
 		return
 	}
 
+	var ErrResp model.WebHookResponseError
 	if resp.StatusCode() != 200 {
+		json.Unmarshal(resp.Body(), &ErrResp)
 		c.JSONP(http.StatusUnprocessableEntity, map[string]interface{}{
 			"status":  false,
-			"message": "error confirming transaction",
-			"error":   resp.String(),
+			"message": ErrResp.Message,
 		})
 		return
 	}
 
 	var wResponse model.WebHookResponse
 	if er := json.Unmarshal(resp.Body(), &wResponse); er != nil {
+		json.Unmarshal(resp.Body(), &ErrResp)
 		c.JSONP(http.StatusUnprocessableEntity, map[string]interface{}{
 			"status":  false,
-			"message": "error confirming transaction",
-			"error":   er.Error(),
+			"message": ErrResp.Message,
 		})
 		return
 	}

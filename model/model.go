@@ -3,6 +3,11 @@ package model
 import "time"
 
 type (
+	WebHookResponseError struct {
+		Status  bool   `json:"status"`
+		Message string `json:"message"`
+	}
+
 	WebHookResponse struct {
 		Event string `json:"event"`
 		Data  struct {
@@ -18,7 +23,7 @@ type (
 			Channel         string      `json:"channel"`
 			Currency        string      `json:"currency"`
 			IpAddress       string      `json:"ip_address"`
-			Metadata        int         `json:"metadata"`
+			Metadata        interface{} `json:"metadata"`
 			Log             struct {
 				TimeSpent      int           `json:"time_spent"`
 				Attempts       int           `json:"attempts"`
@@ -42,8 +47,8 @@ type (
 				Email        string      `json:"email"`
 				CustomerCode string      `json:"customer_code"`
 				Phone        interface{} `json:"phone"`
-				Metadata     interface{} `json:"metadata"`
-				RiskAction   string      `json:"risk_action"`
+				//Metadata     interface{} `json:"metadata"`
+				RiskAction string `json:"risk_action"`
 			} `json:"customer"`
 			Authorization struct {
 				AuthorizationCode string `json:"authorization_code"`
