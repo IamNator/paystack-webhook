@@ -47,9 +47,9 @@ func CheckTransaction(c *gin.Context) {
 		return
 	}
 
-	var ErrResp model.WebHookResponseError
+	var ErrResp model.CheckTransactionErrResponse
 	if resp.StatusCode() != 200 {
-		json.Unmarshal(resp.Body(), &ErrResp)
+		_ = json.Unmarshal(resp.Body(), &ErrResp)
 		c.JSONP(http.StatusUnprocessableEntity, map[string]interface{}{
 			"status":  false,
 			"message": ErrResp.Message,
@@ -57,9 +57,9 @@ func CheckTransaction(c *gin.Context) {
 		return
 	}
 
-	var wResponse model.WebHookResponse
+	var wResponse model.CheckTransactionResponse
 	if er := json.Unmarshal(resp.Body(), &wResponse); er != nil {
-		json.Unmarshal(resp.Body(), &ErrResp)
+		_ = json.Unmarshal(resp.Body(), &ErrResp)
 		c.JSONP(http.StatusUnprocessableEntity, map[string]interface{}{
 			"status":  false,
 			"message": ErrResp.Message,

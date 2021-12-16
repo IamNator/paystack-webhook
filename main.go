@@ -26,6 +26,7 @@ func main() {
 
 	apiLogger.Info().Msgf("server running at port %s", port)
 	myRouter.GET("/transaction/check", handler.CheckTransaction)
+	myRouter.POST("/transaction/webhook", handler.WebHook)
 
 	if er := http.ListenAndServe(":"+port, myRouter); er != nil {
 		log.Fatalf("unable to listen and serve at port %s", port)
